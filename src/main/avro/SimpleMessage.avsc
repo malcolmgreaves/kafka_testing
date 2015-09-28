@@ -10,7 +10,7 @@
     },
     {
       "name": "timestamp",
-      "type": "string"
+      "type": "long"
     }
   ]
 }
