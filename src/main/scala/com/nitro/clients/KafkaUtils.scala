@@ -1,9 +1,11 @@
-package com.nitro.clients.kafka
+package com.nitro.clients
 
 import java.io.IOException
 import java.net.ServerSocket
 import java.util
 import util.Properties
+
+import com.nitro.clients.kafka._
 
 import akka.event.LoggingAdapter
 import com.typesafe.scalalogging.Logger

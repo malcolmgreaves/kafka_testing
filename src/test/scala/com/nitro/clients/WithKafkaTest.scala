@@ -2,10 +2,11 @@ package com.nitro.clients
 
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.{ Sink, Source }
-import com.nitro.clients.kafka.{ KafkaUtils, ImplicitContext }
 import com.nitro.messages.NitroMeta
 import org.scalacheck.Gen
 import org.scalatest.FunSuite
+
+import com.nitro.clients.kafka._
 
 import scala.concurrent.Await
 import scala.language.postfixOps
