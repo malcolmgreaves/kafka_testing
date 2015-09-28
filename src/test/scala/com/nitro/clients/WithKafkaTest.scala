@@ -12,15 +12,22 @@ import scala.language.postfixOps
 
 class WithKafkaTest extends FunSuite {
 
+  import WithKafkaTest._
+
   test("test simple producer and consumer, no processing") {
 
     val nMessages = 30
-    val nitroMetaTopic = "topic_nitro_meta"
 
     implicit val ic = new ImplicitContext(ActorSystem("InOutTest"))
     try {
 
-      val nitroMetaMessages = nitroMetaMessages(nMessages)
+      val nitroMetaMessages =
+        Gen.containerOfN[Vector, NitroMeta](
+          nMessages,
+          NitroMeta._arbitrary
+        )
+          .sample
+          .get
 
       val received =
         KafkaUtils.withKafka { kafka =>
@@ -55,20 +62,18 @@ class WithKafkaTest extends FunSuite {
 
   test("test 1 type-changing processing step") {
 
-    val nMessages = 5
-    val nitroMetaTopic = "topic_nitro_meta"
-    val simpleMsgTopic = "topic_simple_message"
-
-      def convert(meta: NitroMeta): SimpleMessage =
-        SimpleMessage(
-          content = s"""[From NitroMeta Message] ${meta.headers.mkString(":")}""",
-          timestamp = meta.timestamp
-        )
+    val nMessages = 30
 
     implicit val ic = new ImplicitContext(ActorSystem("TypeChangeTest"))
     try {
 
-      val nitroMetaMessages = nitroMetaMessages(nMessages)
+      val nitroMetaMessages =
+        Gen.containerOfN[Vector, NitroMeta](
+          nMessages,
+          NitroMeta._arbitrary
+        )
+          .sample
+          .get
 
       val received =
         KafkaUtils.withKafka { kafka =>
@@ -110,18 +115,13 @@ class WithKafkaTest extends FunSuite {
 
 object WithKafkaTest {
 
-  def nitroMetaMessages(n: Int): Vector[NitroMeta] = {
-    val result = new Array[NitroMeta](n)
+  val nitroMetaTopic = "topic_nitro_meta"
+  val simpleMsgTopic = "topic_simple_message"
 
-    Gen.containerOfN[Vector, NitroMeta](
-      n,
-      NitroMeta._arbitrary
+  def convert(meta: NitroMeta): SimpleMessage =
+    SimpleMessage(
+      content = "",
+      timestamp = meta.timestamp
     )
-      .sample
-      .get
-      .copyToArray[NitroMeta](result)
-
-    result.toVector
-  }
 
 }
