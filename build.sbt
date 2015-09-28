@@ -16,13 +16,11 @@ version := semver.toString
 
 libraryDependencies ++= Seq(
   NitroGroupId.platform %% "nitroz-pipeline" % "0.5.8",
-
-  "io.confluent"     % "kafka-avro-serializer" % "1.0" exclude ("org.slf4j", "slf4j-log4j12") exclude ("log4j", "log4j"),
-  "org.apache.avro"  % "avro"                  % "1.7.7",
-  "org.apache.kafka" %% "kafka"                % "0.8.2.1" % Provided,
-  "com.softwaremill" %% "reactive-kafka"       % "0.6.0",
-  // Testing
-  "org.scalatest" %% "scalatest" % "2.2.4" % Test
+  "io.confluent"        % "kafka-avro-serializer" % "1.0" exclude ("org.slf4j", "slf4j-log4j12") exclude ("log4j", "log4j"),
+  "org.apache.avro"     % "avro"                  % "1.7.7",
+  "org.apache.kafka"    %% "kafka"                % "0.8.2.1" % Provided,
+  "com.softwaremill"    %% "reactive-kafka"       % "0.6.0",
+  "org.scalatest"       %% "scalatest" % "2.2.4" // note not in Test
 )
 resolvers ++= Seq(
   "Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/",
