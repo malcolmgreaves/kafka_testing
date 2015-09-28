@@ -37,14 +37,14 @@ object KafkaUtils {
    * this method returns.
    */
   def withKafka[T](
-    f:  KafkaBase => T,
-    kp: KProps         = KProps.empty
+    kafkaFn: KafkaBase => T,
+    kp:      KProps         = KProps.empty
   )(
     implicit
     ic: ImplicitContext
   ): T = {
 
-    // create & bring up embedded Kafka and Zookeeper instances
+    // create the embedded Kafka and Zookeeper instances
     val embeddedZookeeper = new EmbeddedZookeeper(-1)
     val embeddedKafkaCluster = new EmbeddedKafkaCluster(
       embeddedZookeeper.getConnection,
@@ -56,18 +56,23 @@ object KafkaUtils {
         kafkaPorts
       }
     )
+
+    // start up the Kafka + Zookeeper cluster
     embeddedZookeeper.startup()
-    val zkHost = embeddedZookeeper.getConnection
     embeddedKafkaCluster.startup()
 
     // run the KafkaBase to T function
-    val kafkaHost = embeddedKafkaCluster.getBrokerList
-
-    val kafkaConfig = KafkaConfiguration(kafkaHost = kafkaHost, zookeeperHost = zkHost)
     try {
       import AdapterForTsLogger.Implicits._
-      val k = new Kafka(kafkaConfig, kp.log)
-      f(k)
+      kafkaFn(
+        new Kafka(
+          KafkaConfiguration(
+            kafkaHost = embeddedKafkaCluster.getBrokerList,
+            zookeeperHost = embeddedZookeeper.getConnection
+          ),
+          kp.log
+        )
+      )
 
     } finally {
       // shutdown and destroy our system
