@@ -1,5 +1,7 @@
 package com.nitro.clients.kafka
 
+import java.io.IOException
+import java.net.ServerSocket
 import java.util
 import util.Properties
 
@@ -8,6 +10,7 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.helpers.NOPLogger
 
 import scala.language.implicitConversions
+import scala.util.{ Success, Try }
 
 object KafkaUtils {
 
@@ -73,6 +76,42 @@ object KafkaUtils {
     }
   }
 
+  def resolvePort(port: Int): Try[Int] =
+    if (port == -1)
+      findAvailablePort()
+    else
+      Success(port)
+
+  def unsafeResolvePort(port: Int): Int =
+    resolvePort(port).get
+
+  def findAvailablePort(): Try[Int] =
+    Try {
+      try {
+        val socket = new ServerSocket(0)
+        try {
+          socket.getLocalPort
+        } finally {
+          if (socket != null) {
+            socket.close()
+          }
+        }
+      } catch {
+        case e: IOException =>
+          throw new IllegalStateException(
+            s"Cannot find available port: ${e.getMessage}",
+            e
+          )
+      }
+    }
+
+  def unsafeFindAvailablePort: Int =
+    findAvailablePort().get
+
+  /**
+   * An implicit conversion providing evidence that a Typesafe Logger adheres
+   * to the Akka event Logging Adapter interface.
+   */
   object AdapterForTsLogger {
     object Implicits {
       implicit def adaptLogger(l: Logger): LoggingAdapter =

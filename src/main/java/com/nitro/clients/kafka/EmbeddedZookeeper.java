@@ -9,9 +9,16 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+/**
+ * The embedded Zookeeper instance. When instantiated, this class provides
+ * complete functionality of a running Zookeeper server. It executed within
+ * the JVM: not as an external process.
+ *
+ * This class should be used in tandem with the EmbeddedKafkaCluster class.
+ */
 public class EmbeddedZookeeper {
-    private int port = -1;
-    private int tickTime = 500;
+    private final int port;
+    private final int tickTime;
 
     private ServerCnxnFactory factory;
     private File snapshotDir;
@@ -21,26 +28,24 @@ public class EmbeddedZookeeper {
         this(-1);
     }
 
-    public EmbeddedZookeeper(int port) {
+    public EmbeddedZookeeper(final int port) {
         this(port, 500);
     }
 
-    public EmbeddedZookeeper(int port, int tickTime) {
-        this.port = resolvePort(port);
-        this.tickTime = tickTime;
+    public EmbeddedZookeeper(final int port, final int tickTime) {
+        this.port = KafkaUtils.unsafeResolvePort(port);
+        if (tickTime <= 0)
+            this.tickTime = 0;
+        else
+            this.tickTime = tickTime;
     }
 
-    private int resolvePort(int port) {
-        if (port == -1) {
-            return TestUtils.getAvailablePort();
-        }
-        return port;
-    }
-
-    public void startup() throws IOException{
-        if (this.port == -1) {
-            this.port = TestUtils.getAvailablePort();
-        }
+    /**
+     * Creates a new server connection factory with a newly constructed
+     * ZooKeeperServer, which itself has access to newly created snapshot
+     * and logging (temp) directories.
+     */
+    public void startup() throws IOException {
         this.factory = NIOServerCnxnFactory.createFactory(new InetSocketAddress("localhost", port), 1024);
         this.snapshotDir = TestUtils.constructTempDir("embeeded-zk/snapshot");
         this.logDir = TestUtils.constructTempDir("embeeded-zk/log");
@@ -53,6 +58,11 @@ public class EmbeddedZookeeper {
     }
 
 
+    /**
+     * Calls shutdown on the internal server connection factory, which, in turn,
+     * shuts down the ZooKeeperServer instance created in startup. Also, deletes
+     * the snapshot and logging directories created from startup.
+     */
     public void shutdown() {
         factory.shutdown();
         try {
@@ -71,14 +81,6 @@ public class EmbeddedZookeeper {
         return "localhost:" + port;
     }
 
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    public void setTickTime(int tickTime) {
-        this.tickTime = tickTime;
-    }
-
     public int getPort() {
         return port;
     }
@@ -87,11 +89,16 @@ public class EmbeddedZookeeper {
         return tickTime;
     }
 
+    public File getLogDir() {
+        return logDir;
+    }
+
+    public File getSnapshotDir(){
+        return snapshotDir;
+    }
+
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("EmbeddedZookeeper{");
-        sb.append("connection=").append(getConnection());
-        sb.append('}');
-        return sb.toString();
+        return "EmbeddedZookeeper{" + "connection=" + getConnection() + '}';
     }
 }

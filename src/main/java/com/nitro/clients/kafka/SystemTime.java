@@ -2,7 +2,11 @@ package com.nitro.clients.kafka;
 
 import kafka.utils.Time;
 
+/**
+ * A Time instance that our embedded Kafka instance uses.
+ */
 class SystemTime implements Time {
+
     public long milliseconds() {
         return System.currentTimeMillis();
     }
