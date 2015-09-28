@@ -14,7 +14,7 @@ import org.slf4j.helpers.NOPLogger
 import scala.language.implicitConversions
 import scala.util.{ Success, Try }
 
-object KafkaUtils {
+object KafkaUtilsN {
 
   /**
    * Configuration for running a Kafka-enabled function.
@@ -39,7 +39,7 @@ object KafkaUtils {
    * this method returns.
    */
   def withKafka[T](
-    kafkaFn: KafkaBase => T,
+    kafkaFn: KafkaBaseN => T,
     kp:      WithKafkaConf  = WithKafkaConf.empty
   )(
     implicit
@@ -67,7 +67,7 @@ object KafkaUtils {
     try {
       import AdapterForTsLogger.Implicits._
       kafkaFn(
-        new Kafka(
+        new KafkaN(
           KafkaConfiguration(
             kafkaHost = embeddedKafkaCluster.getBrokerList,
             zookeeperHost = embeddedZookeeper.getConnection

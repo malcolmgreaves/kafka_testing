@@ -14,7 +14,7 @@ import org.apache.avro.io.{ DecoderFactory, EncoderFactory }
 import scala.util.Try
 import scala.util.control.NonFatal
 
-trait KafkaBase {
+trait KafkaBaseN {
 
   def produceGeneric[T <: GeneratedMessage with Message[T]](
     topic:   String,
@@ -33,13 +33,13 @@ trait KafkaBase {
   ): Source[T, Unit]
 }
 
-class Kafka(
+class KafkaN(
     kafkaConfiguration: KafkaConfiguration,
     logger:             LoggingAdapter
 )(
     implicit
     implicitContext: ImplicitContext
-) extends KafkaBase() {
+) extends KafkaBaseN() {
 
   import implicitContext._
 

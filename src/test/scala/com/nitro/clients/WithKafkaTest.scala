@@ -31,7 +31,7 @@ class WithKafkaTest extends FunSuite {
           .get
 
       val received =
-        KafkaUtils.withKafka { kafka =>
+        KafkaUtilsN.withKafka { kafka =>
 
           import ic._
 
@@ -77,7 +77,7 @@ class WithKafkaTest extends FunSuite {
           .get
 
       val received =
-        KafkaUtils.withKafka { kafka =>
+        KafkaUtilsN.withKafka { kafka =>
 
           import ic._
 
