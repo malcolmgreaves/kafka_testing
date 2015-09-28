@@ -4,40 +4,42 @@ import java.io.ByteArrayOutputStream
 import java.util.UUID
 
 import akka.event.LoggingAdapter
-import akka.stream.scaladsl.{Source, Sink}
-import com.nitro.scalaAvro.runtime.{GeneratedMessageCompanion, Message, GeneratedMessage}
+import akka.stream.scaladsl.{ Source, Sink }
+import com.nitro.scalaAvro.runtime.{ GeneratedMessageCompanion, Message, GeneratedMessage }
 import com.softwaremill.react.kafka.ReactiveKafka
-import kafka.serializer.{Decoder, Encoder}
-import org.apache.avro.generic.{GenericDatumReader, GenericRecord, GenericDatumWriter}
-import org.apache.avro.io.{DecoderFactory, EncoderFactory}
+import kafka.serializer.{ Decoder, Encoder }
+import org.apache.avro.generic.{ GenericDatumReader, GenericRecord, GenericDatumWriter }
+import org.apache.avro.io.{ DecoderFactory, EncoderFactory }
 
 import scala.util.Try
 import scala.util.control.NonFatal
-
 
 trait KafkaBase {
 
   def produceGeneric[T <: GeneratedMessage with Message[T]](
     topic:   String,
     groupId: String = UUID.randomUUID().toString
- )(
-    implicit companion: GeneratedMessageCompanion[T]
+  )(
+    implicit
+    companion: GeneratedMessageCompanion[T]
   ): Sink[T, Unit]
 
   def consumeGeneric[T <: GeneratedMessage with Message[T]](
     topic:   String,
     groupId: String = UUID.randomUUID().toString
- )(
-    implicit companion: GeneratedMessageCompanion[T]
+  )(
+    implicit
+    companion: GeneratedMessageCompanion[T]
   ): Source[T, Unit]
 }
 
 class Kafka(
- kafkaConfiguration: KafkaConfiguration,
- logger: LoggingAdapter
+    kafkaConfiguration: KafkaConfiguration,
+    logger:             LoggingAdapter
 )(
-  implicit implicitContext: ImplicitContext
- ) extends KafkaBase() {
+    implicit
+    implicitContext: ImplicitContext
+) extends KafkaBase() {
 
   import implicitContext._
 
@@ -47,10 +49,11 @@ class Kafka(
   )
 
   override def produceGeneric[T <: GeneratedMessage with Message[T]](
-    topic: String,
+    topic:   String,
     groupId: String = UUID.randomUUID.toString
   )(
-    implicit companion: GeneratedMessageCompanion[T]
+    implicit
+    companion: GeneratedMessageCompanion[T]
   ) =
     Sink(kafka.publish(topic, UUID.randomUUID().toString, new Encoder[T] {
       override def toBytes(t: T): Array[Byte] = {
@@ -60,10 +63,11 @@ class Kafka(
     }))
 
   override def consumeGeneric[T <: GeneratedMessage with Message[T]](
-    topic: String,
+    topic:   String,
     groupId: String = UUID.randomUUID.toString
   )(
-    implicit companion: GeneratedMessageCompanion[T]
+    implicit
+    companion: GeneratedMessageCompanion[T]
   ) =
     Source(kafka.consume(topic, UUID.randomUUID().toString, new Decoder[T] {
       override def fromBytes(bytes: Array[Byte]): T = {
@@ -82,7 +86,8 @@ object AvroMessageEncoder {
   )(
     message: T
   )(
-    implicit companion: GeneratedMessageCompanion[T]
+    implicit
+    companion: GeneratedMessageCompanion[T]
   ): Array[Byte] =
     Try {
       val baos = new ByteArrayOutputStream()
