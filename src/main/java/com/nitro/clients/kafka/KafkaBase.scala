@@ -16,35 +16,59 @@ import scala.util.control.NonFatal
 
 
 trait KafkaBase {
+
   def produceGeneric[T <: GeneratedMessage with Message[T]](
-                                                             topic:   String,
-                                                             groupId: String = UUID.randomUUID().toString
-                                                             )(implicit companion: GeneratedMessageCompanion[T]): Sink[T, Unit]
+    topic:   String,
+    groupId: String = UUID.randomUUID().toString
+ )(
+    implicit companion: GeneratedMessageCompanion[T]
+  ): Sink[T, Unit]
 
   def consumeGeneric[T <: GeneratedMessage with Message[T]](
-                                                             topic:   String,
-                                                             groupId: String = UUID.randomUUID().toString
-                                                             )(implicit companion: GeneratedMessageCompanion[T]): Source[T, Unit]
+    topic:   String,
+    groupId: String = UUID.randomUUID().toString
+ )(
+    implicit companion: GeneratedMessageCompanion[T]
+  ): Source[T, Unit]
 }
 
-class Kafka(kafkaConfiguration: KafkaConfiguration, logger: LoggingAdapter)(implicit implicitContext: ImplicitContext) extends KafkaBase() {
+class Kafka(
+ kafkaConfiguration: KafkaConfiguration,
+ logger: LoggingAdapter
+)(
+  implicit implicitContext: ImplicitContext
+ ) extends KafkaBase() {
+
   import implicitContext._
 
-  private lazy val kafka = new ReactiveKafka(host = kafkaConfiguration.kafkaHost, zooKeeperHost = kafkaConfiguration.zookeeperHost)
+  private lazy val kafka = new ReactiveKafka(
+    host = kafkaConfiguration.kafkaHost,
+    zooKeeperHost = kafkaConfiguration.zookeeperHost
+  )
 
-  override def produceGeneric[T <: GeneratedMessage with Message[T]](topic: String, groupId: String = UUID.randomUUID.toString)(implicit companion: GeneratedMessageCompanion[T]) =
+  override def produceGeneric[T <: GeneratedMessage with Message[T]](
+    topic: String,
+    groupId: String = UUID.randomUUID.toString
+  )(
+    implicit companion: GeneratedMessageCompanion[T]
+  ) =
     Sink(kafka.publish(topic, UUID.randomUUID().toString, new Encoder[T] {
       override def toBytes(t: T): Array[Byte] = {
-        logger.info(s"sending $t to kafka topic $topic")
+        println(s"sending to kafka topic $topic")
         AvroMessageEncoder.encode(logger)(t)(companion)
       }
     }))
 
-  override def consumeGeneric[T <: GeneratedMessage with Message[T]](topic: String, groupId: String = UUID.randomUUID.toString)(implicit companion: GeneratedMessageCompanion[T]) =
+  override def consumeGeneric[T <: GeneratedMessage with Message[T]](
+    topic: String,
+    groupId: String = UUID.randomUUID.toString
+  )(
+    implicit companion: GeneratedMessageCompanion[T]
+  ) =
     Source(kafka.consume(topic, UUID.randomUUID().toString, new Decoder[T] {
       override def fromBytes(bytes: Array[Byte]): T = {
         val res = AvroMessageEncoder.decode(logger)(companion)(bytes)
-        logger.info(s"read $res from kafka topic $topic")
+        println(s"read from kafka topic $topic")
         res
       }
     }))
@@ -53,28 +77,65 @@ class Kafka(kafkaConfiguration: KafkaConfiguration, logger: LoggingAdapter)(impl
 object AvroMessageEncoder {
 
   import language.postfixOps
-  def encode[T <: GeneratedMessage with Message[T]](logger: LoggingAdapter)(message: T)(implicit companion: GeneratedMessageCompanion[T]): Array[Byte] = Try {
-    val baos = new ByteArrayOutputStream()
-    val encoder = EncoderFactory.get().binaryEncoder(baos, null)
-    val writer = new GenericDatumWriter[GenericRecord](companion.schema)
-    val gen = message.toMutable
-    writer.write(gen, encoder)
-    encoder.flush()
-    baos.toByteArray
-  } recover {
-    case NonFatal(t: Throwable) =>
-      logger.error(s"Error encoding $message: ${t.getMessage}")
-      throw t
-  } get
+  def encode[T <: GeneratedMessage with Message[T]](
+    logger: LoggingAdapter
+  )(
+    message: T
+  )(
+    implicit companion: GeneratedMessageCompanion[T]
+  ): Array[Byte] =
+    Try {
+      val baos = new ByteArrayOutputStream()
+      println("before encoder")
+      val encoder = EncoderFactory.get().binaryEncoder(baos, null)
+      println("before writer")
+      val writer = new GenericDatumWriter[GenericRecord](companion.schema)
+      println("before toMutable")
+      val gen = message.toMutable
+      println("before write")
+      writer.write(gen, encoder)
+      encoder.flush()
+      println("before byte array")
+      baos.toByteArray
 
-  def decode[T <: GeneratedMessage with Message[T]](logger: LoggingAdapter)(companion: GeneratedMessageCompanion[T])(bytes: Array[Byte]): T = Try {
-    val decoder = DecoderFactory.get().binaryDecoder(bytes, null)
-    val reader = new GenericDatumReader[GenericRecord](companion.schema)
-    val r = reader.read(null, decoder)
-    companion.fromMutable(r)
-  } recover {
-    case NonFatal(t: Throwable) =>
-      logger.error(s"Error decoding message into $companion: ${t.getMessage}")
-      throw t
-  } get
+    } recover {
+
+      case NonFatal(t: Throwable) =>
+        println(s"Error encoding ${t.getMessage}")
+        throw t
+
+      case unk =>
+        println(s"Cannot handle: ${unk.getMessage}")
+        throw unk
+
+    } get
+
+  def decode[T <: GeneratedMessage with Message[T]](
+    logger: LoggingAdapter
+  )(
+    companion: GeneratedMessageCompanion[T]
+  )(
+    bytes: Array[Byte]
+  ): T =
+    Try {
+      println("before decoder")
+      val decoder = DecoderFactory.get().binaryDecoder(bytes, null)
+      println("before reader")
+      val reader = new GenericDatumReader[GenericRecord](companion.schema)
+      println("before read")
+      val r = reader.read(null, decoder)
+      println("before fromMutable")
+      companion.fromMutable(r)
+
+    } recover {
+
+      case NonFatal(t: Throwable) =>
+        println(s"Error decoding message: ${t.getMessage}")
+        throw t
+
+      case unk =>
+        println(s"Cannot handle: ${unk.getMessage}")
+        throw unk
+
+    } get
 }
