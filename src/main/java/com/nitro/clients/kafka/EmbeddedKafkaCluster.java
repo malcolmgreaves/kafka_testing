@@ -3,6 +3,8 @@ package com.nitro.clients.kafka;
 import kafka.server.KafkaConfig;
 import kafka.server.KafkaServer;
 
+import com.nitro.clients.KafkaUtilsN;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -58,7 +60,7 @@ public class EmbeddedKafkaCluster {
     public static List<Integer> resolvePorts(final List<Integer> ports) {
         final List<Integer> resolvedPorts = new ArrayList<>();
         for (final Integer port : ports) {
-            resolvedPorts.add(KafkaUtils.unsafeResolvePort(port));
+            resolvedPorts.add(KafkaUtilsN.unsafeResolvePort(port));
         }
         return resolvedPorts;
     }

@@ -4,6 +4,8 @@ import org.apache.zookeeper.server.NIOServerCnxnFactory;
 import org.apache.zookeeper.server.ServerCnxnFactory;
 import org.apache.zookeeper.server.ZooKeeperServer;
 
+import com.nitro.clients.KafkaUtilsN;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -33,7 +35,7 @@ public class EmbeddedZookeeper {
     }
 
     public EmbeddedZookeeper(final int port, final int tickTime) {
-        this.port = KafkaUtils.unsafeResolvePort(port);
+        this.port = KafkaUtilsN.unsafeResolvePort(port);
         if (tickTime <= 0)
             this.tickTime = 0;
         else
