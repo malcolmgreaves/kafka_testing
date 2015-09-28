@@ -38,7 +38,7 @@ object KafkaUtils {
    */
   def withKafka[T](
     kafkaFn: KafkaBase => T,
-    kp:      WithKafkaConf         = WithKafkaConf.empty
+    kp:      WithKafkaConf  = WithKafkaConf.empty
   )(
     implicit
     ic: ImplicitContext
@@ -81,15 +81,27 @@ object KafkaUtils {
     }
   }
 
+  /**
+   * Evaluates to Success of the input port iff port is negative.
+   * Otherwise it uses findAvailablePort to get an unused one from the system.
+   */
   def resolvePort(port: Int): Try[Int] =
-    if (port == -1)
+    if (port <= -1)
       findAvailablePort()
     else
       Success(port)
 
+  /**
+   * Same thing as resolvePort, but calls get on the resulting Try. (For Java)
+   */
   def unsafeResolvePort(port: Int): Int =
     resolvePort(port).get
 
+  /**
+   * Internally, creates a new ServerSocket to get a new, fresh, unused port.
+   * If successful, it will evaluate to this port number. It always shuts-down
+   * all state created within this method.
+   */
   def findAvailablePort(): Try[Int] =
     Try {
       try {
@@ -110,6 +122,9 @@ object KafkaUtils {
       }
     }
 
+  /**
+   * Same as findAvailablePort, but calls get on the resulting try. (For Java)
+   */
   def unsafeFindAvailablePort: Int =
     findAvailablePort().get
 
