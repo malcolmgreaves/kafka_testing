@@ -17,16 +17,16 @@ object KafkaUtils {
   /**
    * Configuration for running a Kafka-enabled function.
    */
-  case class KProps(p: Properties, log: Logger)
+  case class WithKafkaConf(props: Properties, log: Logger)
 
-  object KProps {
+  object WithKafkaConf {
 
     /**
      * Empty properties and the no-op logger.
      */
-    val empty: KProps =
-      KProps(
-        p = new Properties(),
+    val empty: WithKafkaConf =
+      WithKafkaConf(
+        props = new Properties(),
         log = Logger(NOPLogger.NOP_LOGGER)
       )
   }
@@ -38,7 +38,7 @@ object KafkaUtils {
    */
   def withKafka[T](
     kafkaFn: KafkaBase => T,
-    kp:      KProps         = KProps.empty
+    kp:      WithKafkaConf         = WithKafkaConf.empty
   )(
     implicit
     ic: ImplicitContext
@@ -48,7 +48,7 @@ object KafkaUtils {
     val embeddedZookeeper = new EmbeddedZookeeper(-1)
     val embeddedKafkaCluster = new EmbeddedKafkaCluster(
       embeddedZookeeper.getConnection,
-      new Properties(),
+      kp.props,
       {
         val kafkaPorts = new util.ArrayList[Integer]()
         // -1 for any available port
