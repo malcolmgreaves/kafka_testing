@@ -7,7 +7,7 @@ import NitroPublishHelpers._
 // GAV
 
 lazy val pName  = "kafka_testing"
-lazy val semver = NitroSemanticVersion(0,0,0)
+lazy val semver = NitroSemanticVersion(0,0,1)
 organization := NitroGroupId.platform
 name := pName
 version := semver.toString
