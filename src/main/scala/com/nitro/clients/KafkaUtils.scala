@@ -11,9 +11,16 @@ import scala.language.implicitConversions
 
 object KafkaUtils {
 
+  /**
+   * Configuration for running a Kafka-enabled function.
+   */
   case class KProps(p: Properties, log: Logger)
 
   object KProps {
+
+    /**
+     * Empty properties and the no-op logger.
+     */
     val empty: KProps =
       KProps(
         p = new Properties(),
@@ -21,9 +28,20 @@ object KafkaUtils {
       )
   }
 
-  def withKafka[T](f: KafkaBase => T, kp: KProps = KProps.empty): T = {
+  /**
+   * Executes a Kafka-enabled function. Stands up a Kafka and Zookeeper instance
+   * to run the supplied function. Ensures that these services are shutdown when
+   * this method returns.
+   */
+  def withKafka[T](
+    f:  KafkaBase => T,
+    kp: KProps         = KProps.empty
+  )(
+    implicit
+    ic: ImplicitContext
+  ): T = {
 
-    // create embedded Kafka and Zookeeper instances
+    // create & bring up embedded Kafka and Zookeeper instances
     val embeddedZookeeper = new EmbeddedZookeeper(-1)
     val embeddedKafkaCluster = new EmbeddedKafkaCluster(
       embeddedZookeeper.getConnection,
@@ -44,7 +62,7 @@ object KafkaUtils {
 
     val kafkaConfig = KafkaConfiguration(kafkaHost = kafkaHost, zookeeperHost = zkHost)
     try {
-      import TypesafeLoggerIsLoggingAdapter.Implicits._
+      import AdapterForTsLogger.Implicits._
       val k = new Kafka(kafkaConfig, kp.log)
       f(k)
 
@@ -55,9 +73,9 @@ object KafkaUtils {
     }
   }
 
-  object TypesafeLoggerIsLoggingAdapter {
+  object AdapterForTsLogger {
     object Implicits {
-      implicit def logToLogAdapt(l: Logger): LoggingAdapter =
+      implicit def adaptLogger(l: Logger): LoggingAdapter =
         new LoggingAdapter {
 
           // logging methods
@@ -67,7 +85,6 @@ object KafkaUtils {
 
           override protected def notifyInfo(message: String): Unit =
             l.info(message)
-
 
           override protected def notifyWarning(message: String): Unit =
             l.warn(message)
