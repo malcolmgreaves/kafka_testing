@@ -20,7 +20,9 @@ libraryDependencies ++= Seq(
   "org.apache.avro"     % "avro"                  % "1.7.7",
   "org.apache.kafka"    %% "kafka"                % "0.8.2.1" % Provided,
   "com.softwaremill"    %% "reactive-kafka"       % "0.6.0",
-  "org.scalatest"       %% "scalatest" % "2.2.4" // note not in Test
+  "org.scalatest"       %% "scalatest"            % "2.2.4", // note not in Test
+  // testing
+  NitroGroupId.platform %% "avro-codegen-runtime" % "0.1.6" % Test
 )
 resolvers ++= Seq(
   "Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/",

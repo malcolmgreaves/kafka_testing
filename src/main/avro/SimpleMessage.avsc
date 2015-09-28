@@ -1,0 +1,16 @@
+{
+  "type": "record",
+  "namespace": "com.nitro.clients",
+  "name": "SimpleMessage",
+  "doc:": "A simple message.",
+  "fields": [
+    {
+      "name": "content",
+      "type": "string"
+    },
+    {
+      "name": "timestamp",
+      "type": "string"
+    }
+  ]
+}

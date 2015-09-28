@@ -12,7 +12,7 @@ import scala.language.postfixOps
 
 class WithKafkaTest extends FunSuite {
 
-  test("test simple producer and consumer") {
+  test("test simple producer and consumer, no processing") {
 
     val nMessages = 30
     val nitroMetaTopic = "topic_nitro_meta"
@@ -28,10 +28,10 @@ class WithKafkaTest extends FunSuite {
           .sample
           .get
 
-
-
       val received =
         KafkaUtils.withKafka { kafka =>
+
+          import ic._
 
           Source(nitroMetaMessages)
             .runWith(kafka.produceGeneric[NitroMeta](nitroMetaTopic))
@@ -56,6 +56,10 @@ class WithKafkaTest extends FunSuite {
       ic.as.shutdown()
       ic.mat.shutdown()
     }
+
+  }
+
+  test("test 1 type-changing processing step") {
 
   }
 
