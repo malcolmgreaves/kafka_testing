@@ -14,6 +14,13 @@ import org.apache.avro.io.{ DecoderFactory, EncoderFactory }
 import scala.util.Try
 import scala.util.control.NonFatal
 
+class ImplicitContextN(_as: ActorSystem) {
+  implicit val as = _as
+  implicit val ec = as.dispatcher
+  val settings = ActorMaterializerSettings(as)
+  implicit val mat = ActorMaterializer(settings)(as)
+}
+
 trait KafkaBaseN {
 
   def produceGeneric[T <: GeneratedMessage with Message[T]](
@@ -38,10 +45,10 @@ class KafkaN(
     logger:             LoggingAdapter
 )(
     implicit
-    implicitContext: ImplicitContext
+    ImplicitContextN: ImplicitContextN
 ) extends KafkaBaseN() {
 
-  import implicitContext._
+  import ImplicitContextN._
 
   private lazy val kafka = new ReactiveKafka(
     host = kafkaConfiguration.kafkaHost,
