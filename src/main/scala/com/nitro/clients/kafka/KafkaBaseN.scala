@@ -3,8 +3,11 @@ package com.nitro.clients.kafka
 import java.io.ByteArrayOutputStream
 import java.util.UUID
 
+import akka.actor.ActorSystem
 import akka.event.LoggingAdapter
+import akka.stream.{ActorMaterializerSettings, ActorMaterializer}
 import akka.stream.scaladsl.{ Source, Sink }
+import com.nitro.clients.KafkaConfigurationN
 import com.nitro.scalaAvro.runtime.{ GeneratedMessageCompanion, Message, GeneratedMessage }
 import com.softwaremill.react.kafka.ReactiveKafka
 import kafka.serializer.{ Decoder, Encoder }
@@ -14,10 +17,13 @@ import org.apache.avro.io.{ DecoderFactory, EncoderFactory }
 import scala.util.Try
 import scala.util.control.NonFatal
 
-class ImplicitContextN(_as: ActorSystem) {
+class ImplicitContextN(
+  _as: ActorSystem,
+  mkSettings: ActorSystem => ActorMaterializerSettings = (sys: ActorSystem) => ActorMaterializerSettings(sys)
+) {
   implicit val as = _as
   implicit val ec = as.dispatcher
-  val settings = ActorMaterializerSettings(as)
+  val settings = mkSettings(_as)
   implicit val mat = ActorMaterializer(settings)(as)
 }
 
@@ -41,7 +47,7 @@ trait KafkaBaseN {
 }
 
 class KafkaN(
-    kafkaConfiguration: KafkaConfiguration,
+    KafkaConfigurationN: KafkaConfigurationN,
     logger:             LoggingAdapter
 )(
     implicit
@@ -51,8 +57,8 @@ class KafkaN(
   import ImplicitContextN._
 
   private lazy val kafka = new ReactiveKafka(
-    host = kafkaConfiguration.kafkaHost,
-    zooKeeperHost = kafkaConfiguration.zookeeperHost
+    host = KafkaConfigurationN.kafkaHost,
+    zooKeeperHost = KafkaConfigurationN.zookeeperHost
   )
 
   override def produceGeneric[T <: GeneratedMessage with Message[T]](

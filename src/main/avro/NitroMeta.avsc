@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "namespace": "com.nitro.clients",
+  "name": "NitroMeta",
+  "doc:": "A simple message.",
+  "fields": [
+    {
+      "name": "timestamp",
+      "type": "long"
+    }
+  ]
+}

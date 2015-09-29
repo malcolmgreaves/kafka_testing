@@ -8,11 +8,25 @@ import util.Properties
 import com.nitro.clients.kafka._
 
 import akka.event.LoggingAdapter
+import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
 import org.slf4j.helpers.NOPLogger
 
 import scala.language.implicitConversions
 import scala.util.{ Success, Try }
+
+/**
+ * Kafka configuration class for the conf macros
+ */
+case class KafkaConfigurationN(kafkaHost: String, zookeeperHost: String)
+
+object KafkaConfigurationN {
+  val local: KafkaConfigurationN =
+    KafkaConfigurationN(
+      kafkaHost = "localhost:9092",
+      zookeeperHost = "localhost:2181"
+    )
+}
 
 object KafkaUtilsN {
 
@@ -43,7 +57,7 @@ object KafkaUtilsN {
     kp:      WithKafkaConf  = WithKafkaConf.empty
   )(
     implicit
-    ic: ImplicitContext
+    ic: ImplicitContextN
   ): T = {
 
     // create the embedded Kafka and Zookeeper instances
@@ -68,7 +82,7 @@ object KafkaUtilsN {
       import AdapterForTsLogger.Implicits._
       kafkaFn(
         new KafkaN(
-          KafkaConfiguration(
+          KafkaConfigurationN(
             kafkaHost = embeddedKafkaCluster.getBrokerList,
             zookeeperHost = embeddedZookeeper.getConnection
           ),

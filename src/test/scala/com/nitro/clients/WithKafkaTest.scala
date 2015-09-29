@@ -19,7 +19,7 @@ class WithKafkaTest extends FunSuite {
 
     val nMessages = 30
 
-    implicit val ic = new ImplicitContext(ActorSystem("InOutTest"))
+    implicit val ic = new ImplicitContextN(ActorSystem("InOutTest"))
     try {
 
       val nitroMetaMessages =
@@ -65,7 +65,7 @@ class WithKafkaTest extends FunSuite {
 
     val nMessages = 30
 
-    implicit val ic = new ImplicitContext(ActorSystem("TypeChangeTest"))
+    implicit val ic = new ImplicitContextN(ActorSystem("TypeChangeTest"))
     try {
 
       val nitroMetaMessages =
