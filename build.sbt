@@ -15,7 +15,7 @@ version := semver.toString
 // dependencies and their resolvers
 
 libraryDependencies ++= Seq(
-  NitroGroupId.platform %% "avro-codegen-runtime"     % "0.1.6",
+  "com.gonitro"         %% "avro-codegen-runtime"     % "0.2.0",
   "io.confluent"        %  "kafka-avro-serializer"    % "1.0" exclude ("org.slf4j", "slf4j-log4j12") exclude ("log4j", "log4j"),
   "org.apache.avro"     %  "avro"                     % "1.7.7",
   "org.apache.kafka"    %% "kafka"                    % "0.8.2.1" % Provided,
