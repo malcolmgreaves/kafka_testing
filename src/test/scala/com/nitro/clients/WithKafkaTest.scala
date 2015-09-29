@@ -2,7 +2,6 @@ package com.nitro.clients
 
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.{ Sink, Source }
-import com.nitro.messages.NitroMeta
 import org.scalacheck.Gen
 import org.scalatest.FunSuite
 
