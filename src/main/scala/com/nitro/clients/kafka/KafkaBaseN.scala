@@ -58,7 +58,7 @@ class KafkaN(
     Sink(kafka.publish(topic, UUID.randomUUID().toString, new Encoder[T] {
       override def toBytes(t: T): Array[Byte] = {
         println(s"sending to kafka topic $topic")
-        AvroMessageEncoder.encode(logger)(t)(companion)
+        AvroMessageEncoderN.encode(logger)(t)(companion)
       }
     }))
 
@@ -71,14 +71,14 @@ class KafkaN(
   ) =
     Source(kafka.consume(topic, UUID.randomUUID().toString, new Decoder[T] {
       override def fromBytes(bytes: Array[Byte]): T = {
-        val res = AvroMessageEncoder.decode(logger)(companion)(bytes)
+        val res = AvroMessageEncoderN.decode(logger)(companion)(bytes)
         println(s"read from kafka topic $topic")
         res
       }
     }))
 }
 
-object AvroMessageEncoder {
+object AvroMessageEncoderN {
 
   import language.postfixOps
   def encode[T <: GeneratedMessage with Message[T]](
